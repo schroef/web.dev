@@ -7,6 +7,7 @@ import * as workboxStrategies from "workbox-strategies";
 import {CacheableResponsePlugin} from "workbox-cacheable-response";
 import {ExpirationPlugin} from "workbox-expiration";
 import {matchPrecache, precacheAndRoute} from "workbox-precaching";
+import {matchSameOriginRegExp} from "./utils/sw-match.js";
 
 // Architecture revision of the Service Worker. If the previously saved revision doesn't match,
 // then this will cause clients to be aggressively claimed and reloaded on install/activate.
@@ -105,9 +106,11 @@ const untrailedContentPathRe = new RegExp("^(/[\\w-]+)+$");
  */
 const partialPathRe = new RegExp("^/([\\w-]+/)*index\\.json$");
 const partialStrategy = new workboxStrategies.NetworkFirst();
-workboxRouting.registerRoute(({url, event}) => {
-  return url.host === self.location.host && partialPathRe.test(url.pathname);
-}, partialStrategy);
+
+workboxRouting.registerRoute(
+  matchSameOriginRegExp(partialPathRe),
+  partialStrategy,
+);
 
 /**
  * Cache images that aren't included in the original manifest, such as author profiles.
